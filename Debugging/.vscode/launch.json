@@ -1,0 +1,92 @@
+/* 
+ * This is a launch file needed by the Visual Studio Code text editor to enable debugging of a C or C++ target.
+ * There are two debug configurations: "Native Debug Attach" and "C/C++ Attach", depending on which extension you use.
+ * Both rely on the GDB client "arm-none-eabi-gdb" being installed, and that "JLinkGDBServerCL.exe" is used as GDB server.
+ * The GDB server needs to be started before starting debugging. The arguments for the appropriate target can be found from the Jlink GDB server GUI.
+ *
+ * If using "C/C++ Attach", the executable path needs to be changed, either by adding an env variable (${env:vsCodeProjects}), or by changing it to your project path. 
+ * 
+ * To start Commnand line JLink GDB server: JLinkGDBServerCL -select USB -device MKW41Z512xxx4 -if SWD -speed auto -noir (example)
+ * 
+ * The "preLaunchTask" can be changed for other build tools etc. Defined in tasks.json.
+ * 
+ */
+
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "type": "gdb",
+            "request": "launch",
+            "name": "Native Debug Attach",
+            "target": "${workspaceRoot}/BUILD/${workspaceRootFolderName}.elf",
+            "cwd": "${workspaceRoot}",
+            "gdbpath": "arm-none-eabi-gdb",
+            "showDevDebugOutput": true,
+            "preLaunchTask": "make",
+            "autorun": [
+                "-target-select remote localhost:2331",
+                "-interpreter-exec console \"monitor endian little\"",
+                "-interpreter-exec console \"monitor reset\"",
+                "-interpreter-exec console \"monitor halt\"",
+                // "-interpreter-exec console \"monitor arm semihosting enable\"", 
+                "-target-download"
+            ]
+        },       
+        {         
+            "name": "C/C++ Attach",
+            "type": "cppdbg",
+            "request": "attach",
+            "processName": "JLinkGDBServerCL.exe",
+            "program": "${workspaceRoot}/BUILD/${workspaceRootFolderName}.elf",
+            "stopAtEntry": true,
+            "cwd": "${workspaceRoot}",
+            "environment": [],
+            "externalConsole": false,
+            "serverLaunchTimeout": 10000,
+            "filterStderr": true,
+            "filterStdout": false,
+            "serverStarted": "GDB/ server/ started",
+            "preLaunchTask": "make",
+            "setupCommands": [
+                { "text": "-target-select remote localhost:2331", "description": "connect to target", "ignoreFailures": false },
+                { "text": "-file-exec-and-symbols ${workspaceRoot}/BUILD/${workspaceRootFolderName}.elf", "description": "load file", "ignoreFailures": false},
+                { "text": "-interpreter-exec console \"monitor endian little\"", "ignoreFailures": false },
+                { "text": "-interpreter-exec console \"monitor reset\"", "ignoreFailures": false },
+                { "text": "-interpreter-exec console \"monitor halt\"", "ignoreFailures": false },
+                // { "text": "-interpreter-exec console \"monitor arm semihosting enable\"", "ignoreFailures": false },
+                { "text": "-target-download", "description": "flash target", "ignoreFailures": false }
+            ],
+            "logging": {
+                "moduleLoad": true,
+                "trace": true,
+                "engineLogging": true,
+                "programOutput": true,
+                "exceptions": true
+            },
+            "linux": {
+                "MIMode": "gdb",
+                "MIDebuggerPath": "/usr/bin/arm-none-eabi-gdb",
+                "debugServerPath": "/usr/local/bin/pyocd-gdbserver"
+            },
+            "osx": {
+                "MIMode": "gdb",
+                "MIDebuggerPath": "/usr/local/bin/arm-none-eabi-gdb",
+                "debugServerPath": "/usr/local/bin/pyocd-gdbserver"
+            },
+             "windows": {
+                 
+                "MIMode": "gdb",
+                "MIDebuggerPath": "arm-none-eabi-gdb.exe",
+                "setupCommands": [
+                    { "text": "-target-select remote localhost:2331", "description": "connect to target", "ignoreFailures": false },
+                    { "text": "-file-exec-and-symbols ${env:vsCodeProjects}/${workspaceRootFolderName}/BUILD/${workspaceRootFolderName}.elf", "description": "load file", "ignoreFailures": false},
+                    { "text": "-interpreter-exec console \"monitor endian little\"", "ignoreFailures": false },
+                    { "text": "-interpreter-exec console \"monitor reset\"", "ignoreFailures": false },
+                    { "text": "-interpreter-exec console \"monitor halt\"", "ignoreFailures": false },
+                    { "text": "-target-download", "description": "flash target", "ignoreFailures": false }
+                ]
+            }
+        }
+    ]
+}
